@@ -187,7 +187,7 @@ int main(void){
 
 	double x0 = (-0.5 * lx) * 1.25;
 	double xf = (0.5 * lx) * 1.25;
-	double perSide = 100;
+	double perSide = 10;
 
 	double num = (2 * perSide) + 1;
 	double dx = (xf - x0) / (num - 1);
