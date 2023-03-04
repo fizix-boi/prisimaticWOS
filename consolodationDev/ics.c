@@ -1,110 +1,14 @@
-#include <stdio.h>
-#define PI 3.1415926535
-#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
+#include "icsWOSMethods.h"
 
-//object declarations
+/*
+icsWOSMethods.h includes funcs3d.h includes stdio.h and math.h
+*/
 
-typedef struct {
-	double Q;
-	double* pos;
-} ElectronClass;
-
-void electron(ElectronClass *elec, double Q, double* pos){
-	elec->Q = Q;
-	elec->pos = pos;
-}
-
-typedef struct {
-	double* pos;
-	double R;
-} HoleClass;
-
-typedef struct {
-	double V;
-	double* pos;
-	double* geo;
-	int numHoles;
-	HoleClass* holes;
-} MetalSheetClass;
-
-void hole(HoleClass *hol, double* pos, double R){
-	hol->pos = pos;
-	hol->R = R;
-}
-
-void metalSheet(MetalSheetClass *meta, double V, double* pos, double* geo, int numHoles, HoleClass* holes){
-	meta->V = V;
-	meta->pos = pos;
-	meta->geo = geo;
-	meta->numHoles = numHoles;
-	meta->holes = holes;
-}
-
-//helper functions
-void print3Arr(double* threeArr){
-	printf("(%e, %e, %e)\n", threeArr[0], threeArr[1], threeArr[2]);
-}
-
-void add3Arr(double* res, double* arr1, double* arr2){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = arr1[i] + arr2[i];
-	}
-}
-
-void subtract3Arr(double* res, double* arr1, double* arr2){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = arr1[i] - arr2[i];
-	}
-}
-
-void multiply3Arr(double* res, double* arr1, double* arr2){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = arr1[i] * arr2[i];
-	}
-}
-
-void constMultiply3Arr(double* res, double num, double* arr){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = num * arr[i];
-	}
-}
-
-void sign3Arr(double* res, double* arr){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = (arr[i] > 0) ? 1.0 : -1.0;
-	}
-}
-
-void equal3Arr(double* res, double* arr){
-	int i;
-
-	for(i = 0; i <= 2; ++i){
-		res[i] = arr[i];
-	}
-}
-
-double mag3Arr(double* arr){
-	return(sqrt((arr[0] * arr[0]) + (arr[1] * arr[1]) + (arr[2] * arr[2])));
-}
-
-//function headers
-void findClosestPoint(double*, double*, MetalSheetClass);
-double potentialShot(ElectronClass, MetalSheetClass*, int, double, double);
-int isAboveHole(double*, MetalSheetClass);
+#define PI 3.1415926535
 
 int main(void){
 	srand(time(NULL)); //yo okay, this needs to be at the beginning of main or else things won't work
@@ -187,7 +91,7 @@ int main(void){
 
 	double x0 = (-0.5 * lx) * 1.25;
 	double xf = (0.5 * lx) * 1.25;
-	double perSide = 10;
+	double perSide = 50;
 
 	double num = (2 * perSide) + 1;
 	double dx = (xf - x0) / (num - 1);
@@ -224,117 +128,4 @@ int main(void){
 	fclose(printer);
 
 	return 0;
-}
-
-void findClosestPoint(double* closestPoint, double* posUse, MetalSheetClass objecti){
-	double* center = (&objecti)->pos;
-	double* geom = (&objecti)->geo;
-	double halfGeom[3]; constMultiply3Arr(halfGeom, 0.5, geom);
-	double norm[3]; subtract3Arr(norm, posUse, center);
-	double unit[] = {1.0, 1.0, 1.0};
-
-	int holy = isAboveHole(posUse, objecti);
-
-	if(!holy){
-		bool isInX = (fabs(norm[0]) < (halfGeom[0]));
-		bool isInY = (fabs(norm[1]) < (halfGeom[1]));
-		bool isInZ = (fabs(norm[2]) < (halfGeom[2]));
-		double planeInners[] = {isInX?1.0:0.0, isInY?1.0:0.0, isInZ?1.0:0.0};
-		double planeOuters[3]; subtract3Arr(planeOuters, unit, planeInners);
-		double signs[3]; sign3Arr(signs, norm);
-
-		double fromPos[3]; multiply3Arr(fromPos, planeInners, posUse);
-		double fromGeo[3]; multiply3Arr(fromGeo, signs, halfGeom); add3Arr(fromGeo, fromGeo, center); multiply3Arr(fromGeo, planeOuters, fromGeo);
-		add3Arr(closestPoint, fromPos, fromGeo);
-	}else{
-		HoleClass* holes = (&objecti)->holes;
-		int ind = abs(holy) - 1;
-		int isIn = (1 - (holy / abs(holy))) / 2;
-
-		double* locCurr = (&(holes[ind]))->pos;
-		double differ[3]; subtract3Arr(differ, norm, locCurr);
-		differ[2] = 0;
-		double mag = mag3Arr(differ);
-
-		double holyLoc[3]; equal3Arr(holyLoc, differ);
-		constMultiply3Arr(holyLoc, ((&(holes[ind]))->R) / mag, holyLoc);
-		if(!isIn){
-			holyLoc[2] = halfGeom[2] * (norm[2] / fabs(norm[2]));
-		}else{
-			holyLoc[2] = norm[2];
-		}
-		add3Arr(closestPoint, holyLoc, locCurr);
-	}
-}
-
-int isAboveHole(double* posUse, MetalSheetClass objecti){
-	double* center = (&objecti)->pos;
-	double norm[3]; subtract3Arr(norm, posUse, center);
-
-	int numHole = (&objecti)->numHoles;
-	HoleClass* holes = (&objecti)->holes;
-	int res = 0;
-
-	int i;
-
-	for(i = 0; i < numHole; i++){
-		double* locCurr = (&(holes[i]))->pos;
-		double differ[3]; subtract3Arr(differ, norm, locCurr);
-		differ[2] = 0;
-		double mag = mag3Arr(differ);
-		int isAbove = (mag < (&(holes[i]))->R)?1:0;
-		int isIn = (fabs(norm[2]) < (0.5 * ((&objecti)->geo)[2]))?1:0;
-		if(isAbove){
-			res = i + 1;
-			if(isIn){
-				res = -1 * res;
-			}
-			break;
-		}
-	}
-
-	return(res);
-}
-
-double potentialShot(ElectronClass charge, MetalSheetClass* objects, int numObs, double lBound, double hBound){
-	double c = 299792458.0; //[m/s]
-	double u0 = 4.0 * PI * pow(10, (-7)); //[kg*m/C^2]
-	double e0 = 1.0 / ((c * c) * u0); //[F/m]
-	double posUse[3]; equal3Arr(posUse, (&charge)->pos);
-
-	while(true){
-		double rPoints[numObs];
-		double rPointsEStats[numObs];
-		int i;
-
-		for(i = 0; i < numObs; i++){
-			double point[3]; findClosestPoint(point, posUse, objects[i]);
-			double diff[3]; subtract3Arr(diff, posUse, point);
-			double diffEStat[3]; subtract3Arr(diffEStat, (&charge)->pos, point);
-			rPoints[i] = mag3Arr(diff);
-			rPointsEStats[i] = mag3Arr(diffEStat);
-		}
-		int mini = 0;
-		double r = rPoints[mini];
-		for (i = 0; i < numObs; ++i){
-		    if (rPoints[i] < r){
-		        r = rPoints[i];
-		        mini = i;
-		    }
-		}
-		if((r < lBound) || (r > hBound)){
-			double eStatConst = 0.5 * ((&charge)->Q) / (4 * PI * e0);
-			return(((&(objects[mini]))->V) - (eStatConst / rPointsEStats[mini]));
-		}
-		double phi, theta;
-		double irm = 1 / ((double) RAND_MAX);
-
-    	phi = (((double)rand()) * irm) * (2.0 * PI);
-    	theta = acos((2.0 * (((double)rand()) * irm)) - 1.0);
-    	double newDir[] = {sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)};
-		double newDisp[3]; constMultiply3Arr(newDisp, r, newDir);
-		add3Arr(posUse, newDisp, posUse);
-	}
-
-	return(-1);
 }
