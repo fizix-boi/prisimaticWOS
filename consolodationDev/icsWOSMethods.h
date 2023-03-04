@@ -69,62 +69,67 @@ void findClosestPoint(double* closestPoint, double* posUse, MetalSheetClass obje
 		double fromGeo[3]; multiply3Arr(fromGeo, signs, halfGeom); add3Arr(fromGeo, fromGeo, center); multiply3Arr(fromGeo, planeOuters, fromGeo);
 		add3Arr(closestPoint, fromPos, fromGeo);
 	}else{ //if the electric charge IS above or in a hole
-		HoleClass* holes = (&objecti)->holes;
-		int ind = abs(holy) - 1;
-		int isIn = (1 - (holy / abs(holy))) / 2;
+		HoleClass* holes = (&objecti)->holes; //set the given hole array to a local array
+		int ind = abs(holy) - 1; //find the array index of the hole you are above
+		int isIn = (1 - (holy / abs(holy))) / 2; //find if you are in the hole (negative holy)
 
-		double* locCurr = (&(holes[ind]))->pos;
-		double differ[3]; subtract3Arr(differ, norm, locCurr);
-		differ[2] = 0;
-		double mag = mag3Arr(differ);
+		double* locCurr = (&(holes[ind]))->pos; //sets the location of the center of the hole 
+		double differ[3]; subtract3Arr(differ, norm, locCurr); //finds the difference between the location of the hole and charge
+        /*
+        Note that, the hole locations are centered with the metal sheet, so both vectors here do, indeed, have the same origin
+        */
 
-		double holyLoc[3]; equal3Arr(holyLoc, differ);
-		constMultiply3Arr(holyLoc, ((&(holes[ind]))->R) / mag, holyLoc);
-		if(!isIn){
-			holyLoc[2] = halfGeom[2] * (norm[2] / fabs(norm[2]));
-		}else{
-			holyLoc[2] = norm[2];
+		differ[2] = 0; //this sets the z-component to 0 and essentially makes this a 2-dimensional problem from here
+		double mag = mag3Arr(differ); //finds the magnitude of the 
+
+		double holyLoc[3]; equal3Arr(holyLoc, differ); //idk why, but this needed to be cast to a different variable to work
+		constMultiply3Arr(holyLoc, ((&(holes[ind]))->R) / mag, holyLoc); //this ensures that the closest position is normalized to the radius of the hole
+		if(!isIn){ //if the position is in the hole
+			holyLoc[2] = halfGeom[2] * (norm[2] / fabs(norm[2])); //this uses the edge os the hole as the position in z
+		}else{ //if the position is not in the hole
+			holyLoc[2] = norm[2]; // uses the current position of the charge
 		}
-		add3Arr(closestPoint, holyLoc, locCurr);
+		add3Arr(closestPoint, holyLoc, locCurr); //renormalizes the origin of the closest position
 	}
 }
 
 int isAboveHole(double* posUse, MetalSheetClass objecti){
     /* 
-	 * FUNCTION: electron
+	 * FUNCTION: isAboveHole
 	 * ------------------------------
 	 * 
-	 * creates an elcetric charge of charge Q at position pos using the ElectronClass struct
+	 * determines whether or not a position is: above a hole, in a hole, or neither
 	 * 
-	 * elec: the charge object that the parameters will be set to
-     * Q: the charge of the electric charge
-     * pos: the position as a 3-array of the electric charge
+	 * posUse: the position which the will be tested for its 'holiness'
+     * objecti: the object (presumable with holes) which the position will be tested against
 	 * 
-	 * returns: void
+	 * returns: gives an integer whose magnitude is the index (starting at 1) and whose sign tells whether or not
+     *      the position is inside the hole (negative) or simply above (positive). 0 means that it is not above
+     *      any hole.
 	 */
 
 	double* center = (&objecti)->pos;
-	double norm[3]; subtract3Arr(norm, posUse, center);
+	double norm[3]; subtract3Arr(norm, posUse, center); //set origin to the center of the object
 
 	int numHole = (&objecti)->numHoles;
 	HoleClass* holes = (&objecti)->holes;
-	int res = 0;
+	int res = 0; //initialize result (will stay 0 if no hole is encountered)
 
 	int i;
 
-	for(i = 0; i < numHole; i++){
-		double* locCurr = (&(holes[i]))->pos;
-		double differ[3]; subtract3Arr(differ, norm, locCurr);
-		differ[2] = 0;
+	for(i = 0; i < numHole; i++){ //for each hole in the object
+		double* locCurr = (&(holes[i]))->pos; //sets position to a location instantiation
+		double differ[3]; subtract3Arr(differ, norm, locCurr); //nomalizes location to be centered on the hole
+		differ[2] = 0; //moves problem to 2 dimensions
 		double mag = mag3Arr(differ);
-		int isAbove = (mag < (&(holes[i]))->R)?1:0;
-		int isIn = (fabs(norm[2]) < (0.5 * ((&objecti)->geo)[2]))?1:0;
-		if(isAbove){
-			res = i + 1;
-			if(isIn){
-				res = -1 * res;
+		int isAbove = (mag < (&(holes[i]))->R)?1:0; //looks to see if project distance of the position from the center of the hole is within the hole
+		int isIn = (fabs(norm[2]) < (0.5 * ((&objecti)->geo)[2]))?1:0; //checks if the position is in the hole
+		if(isAbove){ //if the position is, indeed, within the bounds of the radius of the hole 
+			res = i + 1; //set the result equal to the index of the hole plus one (since 0 is the no-hole case)
+			if(isIn){ //if the position is in the hole
+				res = -1 * res; //set the result negative if the position is inside of the hole itself
 			}
-			break;
+			break; //break if a hole is found (given the 2-dimension nature of the sheets, a position cannot be above more than one hole)
 		}
 	}
 
@@ -133,16 +138,21 @@ int isAboveHole(double* posUse, MetalSheetClass objecti){
 
 double potentialShot(ElectronClass charge, MetalSheetClass* objects, int numObs, double lBound, double hBound){
     /* 
-	 * FUNCTION: electron
+	 * FUNCTION: potentialShot
 	 * ------------------------------
 	 * 
-	 * creates an elcetric charge of charge Q at position pos using the ElectronClass struct
+     * gives a Monte Carlo walk-on-spheres shot of a given charge in with a set of boundary conditions provided by the objects,
+     * using the lower bound lBound as the epsilon value and the upper bound hBound as a large bounding box to protect against
+     * a runaway charge. (This is extremely unlikely to happen because all surfaces in an unbound set of boundary conditions are
+     * attractive, and thus make it incredibly hard for the charge to climb all the way up to the upper bounding box.)
 	 * 
-	 * elec: the charge object that the parameters will be set to
-     * Q: the charge of the electric charge
-     * pos: the position as a 3-array of the electric charge
-	 * 
-	 * returns: void
+	 * charge: the electric charge being tested in question
+     * objects: the objects of the system providing the boundary conditions
+     * numObs: the number of objects in the system (needed)
+     * lBound: the lower bound under which the simulation will be stopped (often considered the epsilon value)
+     * hBound: the upper bound that creates a bounding box to the problem
+     * 
+	 * returns: the resultant Monte Carlo shot value from the walk-on-spheres method
 	 */
 
 	double c = 299792458.0; //[m/s]
