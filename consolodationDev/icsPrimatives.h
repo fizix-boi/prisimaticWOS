@@ -58,7 +58,7 @@ typedef struct {
      * V: the voltage of the sheet (acts as the equipotential boundary conditions for the Laplace enviornment)
      * pos: the position as a 3-array of the center of the sheet
      * geo: a 3-array with the length of the prism in x, y, and z
-     * numHoles: the number of holes in the metl objects
+     * numHoles: the number of holes in the metal objects
      * holes: the array of hole objects that give the holes in the metal sheet
      */
 

@@ -155,43 +155,56 @@ double potentialShot(ElectronClass charge, MetalSheetClass* objects, int numObs,
 	 * returns: the resultant Monte Carlo shot value from the walk-on-spheres method
 	 */
 
-	double c = 299792458.0; //[m/s]
-	double u0 = 4.0 * PI * pow(10, (-7)); //[kg*m/C^2]
-	double e0 = 1.0 / ((c * c) * u0); //[F/m]
-	double posUse[3]; equal3Arr(posUse, (&charge)->pos);
+	double c = 299792458.0; //speed of light [m/s]
+	double u0 = 4.0 * PI * pow(10, (-7)); // vacuum permeability [kg*m/C^2]
+	double e0 = 1.0 / ((c * c) * u0); //vacuum permitivity[F/m]
+	double posUse[3]; equal3Arr(posUse, (&charge)->pos); //declares posUse in new variable
 
-	while(true){
-		double rPoints[numObs];
-		double rPointsEStats[numObs];
+	while(true){ //this loop will run until it breaks from the inside
+		double rPoints[numObs]; //array of the distances from the current position to the closest point on an object
+		double rPointsEStats[numObs]; //array of distance from the charge to their closest point on an object
 		int i;
 
-		for(i = 0; i < numObs; i++){
+		for(i = 0; i < numObs; i++){ //for each object...
 			double point[3]; findClosestPoint(point, posUse, objects[i]);
 			double diff[3]; subtract3Arr(diff, posUse, point);
 			double diffEStat[3]; subtract3Arr(diffEStat, (&charge)->pos, point);
+			/*
+			diff and diffEStat are extrememly important to keep separate. diff is simply
+			how far away the closest point is from the position you're looking at (THIS
+			IS ONLY THE CHARGE POSITION ON THE FIRST LOOP.) The difference between the
+			closest position and the charge is stored in diffEStat (EStat meaning
+			electrostatic here). This helps to keep the distances correct so that
+			the correct value is used in the correct application
+			*/
 			rPoints[i] = mag3Arr(diff);
 			rPointsEStats[i] = mag3Arr(diffEStat);
 		}
 		int mini = 0;
 		double r = rPoints[mini];
-		for (i = 0; i < numObs; ++i){
-		    if (rPoints[i] < r){
+		for (i = 0; i < numObs; ++i){ //for each object...
+		    if (rPoints[i] < r){ //find which object is closest to the position being used
 		        r = rPoints[i];
 		        mini = i;
 		    }
 		}
-		if((r < lBound) || (r > hBound)){
+		if((r < lBound) || (r > hBound)){ //if the position terminates or is out of bounds
 			double eStatConst = 0.5 * ((&charge)->Q) / (4 * PI * e0);
-			return(((&(objects[mini]))->V) - (eStatConst / rPointsEStats[mini]));
+			return(((&(objects[mini]))->V) - (eStatConst / rPointsEStats[mini])); //return the voltage
 		}
+		/*
+		If the position being used is still larger than the lower bound and within
+		the upper bound, the systems finds a new position on the bounding sphere
+		and continues the Monte Carlo simulation, a la the walk on spheres method.
+		*/
 		double phi, theta;
 		double irm = 1 / ((double) RAND_MAX);
 
-    	phi = (((double)rand()) * irm) * (2.0 * PI);
-    	theta = acos((2.0 * (((double)rand()) * irm)) - 1.0);
-    	double newDir[] = {sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)};
-		double newDisp[3]; constMultiply3Arr(newDisp, r, newDir);
-		add3Arr(posUse, newDisp, posUse);
+    	phi = (((double)rand()) * irm) * (2.0 * PI); //generates a random phi
+    	theta = acos((2.0 * (((double)rand()) * irm)) - 1.0); //generates random theta (the acos is needed to keep the distribution uniform)
+    	double newDir[] = {sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)}; //generates a new unit direction vector
+		double newDisp[3]; constMultiply3Arr(newDisp, r, newDir); //multiples unit direction vector by distance to boundary
+		add3Arr(posUse, newDisp, posUse); //adds new position component to vector
 	}
 
 	return(-1);

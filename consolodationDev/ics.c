@@ -13,40 +13,23 @@ icsWOSMethods.h includes funcs3d.h includes stdio.h and math.h
 int main(void){
 	srand(time(NULL)); //yo okay, this needs to be at the beginning of main or else things won't work
 
-	//fundamental constants
-	//double h = 6.62607015 * pow(10, (-34)); //[Js]
-	//double k = 1.380649 * pow(10, (-23)); //[J/K]
-	//double m = 9.10938356 * pow(10, (-31)); //[kg]
-	double q = 1.60217662 * pow(10, (-19)); //[C]
-	//double c = 299792458.0; //[m/s]
-	//double u0 = 4.0 * PI * pow(10, (-7)); //[kg*m/C^2]
-	//double e0 = 1.0 / ((c * c) * u0); //[F/m]
-	//double fine = (q * q * c * u0) / (2 * h); //[unitless]
-	//double gr = 9.8; //[m/s^2]
-
-	//parameters of system
-	//double rho = 124.8; //[kg/m^3]
-	//double n = 1 * pow(10, 14);//[#/m^2]
-	//double er = 1.057; //[unitless]
-
 	//length scales for defined problem
 	double lzTM = 35 * pow(10, (-9));
 	double lzDP = 50 * pow(10, (-9));
 	double diffr = 15 * pow(10, (-9));
-	//double lzBM = 100 * pow(10, (-9));
 	double diff = diffr + 0.5 * (lzTM + lzDP);
-	//double dSiN = 1500 * pow(10, (-9));
-	//double zBM = dSiN + 0.5 * (lzDP + lzBM);
+	double lzBM = 100 * pow(10, (-9));
+	double dSiN = 1500 * pow(10, (-9));
 	double dr = (10 * pow(10, (-9)));
 	double d = dr + (0.5 * lzTM);
 	double lx = 5000 * pow(10, (-9));
-	//double lxBM = 15000 * pow(10, (-9));
 	double ly = 200 * pow(10, (-9));
 	double dtd = 3000 * pow(10, (-9));
 
 	//initialize electron
 	double electronPos[] = {0.0, 0.0, d};
 	ElectronClass epectron;
+	double q = 1.60217662 * pow(10, (-19)); //[C]
 	electron(&epectron, -1.0 * q, electronPos);
 
 	//initialize metal plates in system
@@ -77,8 +60,12 @@ int main(void){
 	MetalSheetClass bottomMetal;
 	int bottomMetalNumHoles = 0;
 	HoleClass bottomMetalHoles[bottomMetalNumHoles];
+
+	double zBM = dSiN + 0.5 * (lzDP + lzBM);
+	double lxBM = 15000 * pow(10, (-9));
 	double bottomMetalPos[] = {0.0, 0.0, -zBM};
 	double bottomMetalGeo[] = {lxBM, ly, lzBM};
+
 	metalSheet(&bottomMetal, 0, bottomMetalPos, bottomMetalGeo, bottomMetalNumHoles, bottomMetalHoles);
 	objects[2] = bottomMetal;
 	*/
