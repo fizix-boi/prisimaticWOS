@@ -36,6 +36,7 @@ int main(void){
 	int numObs = 2;
 	MetalSheetClass objects[numObs];
 
+	//top metal
 	MetalSheetClass topMetal;
 	int topMetalNumHoles = 2;
 	HoleClass topMetalHoles[topMetalNumHoles];
@@ -48,6 +49,7 @@ int main(void){
 	metalSheet(&topMetal, 0, topMetalPos, topMetalGeo, topMetalNumHoles, topMetalHoles);
 	objects[0] = topMetal;
 
+	//dot potential metal
 	MetalSheetClass dotPot;
 	int dotPotNumHoles = 0;
 	HoleClass dotPotHoles[dotPotNumHoles];
@@ -57,6 +59,7 @@ int main(void){
 	objects[1] = dotPot;
 
 	/*
+	//bottom metal (adds marginal accuracy, can omit)
 	MetalSheetClass bottomMetal;
 	int bottomMetalNumHoles = 0;
 	HoleClass bottomMetalHoles[bottomMetalNumHoles];
@@ -68,51 +71,60 @@ int main(void){
 
 	metalSheet(&bottomMetal, 0, bottomMetalPos, bottomMetalGeo, bottomMetalNumHoles, bottomMetalHoles);
 	objects[2] = bottomMetal;
-	*/
+	//*/
 
 	//main code
+
+	//define bounding box
 	double lBound = 1 * pow(10, (-11));
 	double hBound = 1.0;
+
+	//define the number of shots per data point
 	int reps = pow(10, 4);
 	double normer = 1 / ((double) reps);
 
+	//give the parameters of the position sweep
 	double x0 = (-0.5 * lx) * 1.25;
 	double xf = (0.5 * lx) * 1.25;
-	double perSide = 50;
+	double perSide = 50; //defines the number of points per side
 
-	double num = (2 * perSide) + 1;
-	double dx = (xf - x0) / (num - 1);
+	double num = (2 * perSide) + 1; //makes sweep even
+	double dx = (xf - x0) / (num - 1); //find the step size in the simulation
 
-	int div = 1;
+	int div = 1; //prints this many X's to show progress of the simulation
+
+	//initialize the file for data collection
 	FILE *printer;
 	printer = fopen("ICSData.txt", "w");
 	fprintf(printer, "Height (nm):\t%f\n", dr * 1000000000.0);
 	fprintf(printer, "Position (nm)\tVoltage (mV)\n");
 
+	//initialiize the electron for iteracting through the loop
 	int j = 0;
 	((&epectron)->pos)[0] = x0;
 
-	for(; j < num; j++){
-		double volt = 0;
+	for(; j < num; j++){ //for the number of points in the simulation
+		double volt = 0; //initializes the res
 		int i = 0;
 
-		for(; i < reps; i++){
+		for(; i < reps; i++){ //for the number of monte carlo shots requested
+			//calculate the potential shot and add it the the result for later
 			volt += potentialShot(epectron, objects, numObs, lBound, hBound);
-			if(((i + 1) % (reps / div)) == 0){
-				printf("X");
+			if(((i + 1) % (reps / div)) == 0){ //if the current iteration is a multiple of the div variable
+				printf("X"); //print a progress X
 			}
 		}
 		printf("> #%3d/%d done\n", j + 1, (int) num);
 
-		volt *= normer;
+		volt *= normer; //normalize to the number of shots calculated
 
+		//output the calculation to a file
 		fprintf(printer, "%f\t%f\n", ((&epectron)->pos)[0] * 1000000000.0, volt * 1000.0);
 
-		((&epectron)->pos)[0] += dx;
+		((&epectron)->pos)[0] += dx; //move the electron to the next position for further calculation
 	}
 
-	//ending
+	//end of code, close and free all necessary objects and return 0
 	fclose(printer);
-
 	return 0;
 }
