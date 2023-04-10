@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 //object declatations
@@ -136,17 +137,17 @@ int main(void){
 	//main code
 	double lBound = 1 * pow(10, (-9));
 	double hBound = 1.0;
-	int reps = pow(10, 7);
+	int reps = pow(10, 4);
 	int div = 20;
 	double normer = 1 / ((double) reps);
 	
-	double z0 = (100 * pow(10, (-9))) + (0.5 * lz);
-	double zf = (300 * pow(10, (-9))) + (0.5 * lz);
-	double num = 21;
+	double z0 = (1 * pow(10, (-9))) + (0.5 * lz);
+	double zf = (10000 * pow(10, (-9))) + (0.5 * lz);
+	double num = 40 + 1;
 	double dz = (zf - z0) / (num - 1);
 	
-	double g0 = (50 * pow(10, (-9)));
-	double gf = (150 * pow(10, (-9)));
+	double g0 = (600 * pow(10, (-9)));
+	double gf = (2000 * pow(10, (-9)));
 	double numg = 10 + 1;
 	double dg = (gf - g0) / (numg - 1);
 	
