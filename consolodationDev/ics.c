@@ -13,80 +13,75 @@ icsWOSMethods.h includes funcs3d.h includes stdio.h and math.h
 int main(void){
 	srand(time(NULL)); //yo okay, this needs to be at the beginning of main or else things won't work
 
+	//START ORIENTATION DEFINITION
+
 	//length scales for defined problem
-	double lzTM = 35 * pow(10, (-9));
-	double lzDP = 50 * pow(10, (-9));
-	double diffr = 15 * pow(10, (-9));
-	double diff = diffr + 0.5 * (lzTM + lzDP);
-	double lzBM = 100 * pow(10, (-9));
-	double dSiN = 1500 * pow(10, (-9));
-	double dr = (10 * pow(10, (-9)));
-	double d = dr + (0.5 * lzTM);
-	double lx = 5000 * pow(10, (-9));
-	double ly = 200 * pow(10, (-9));
-	double dtd = 3000 * pow(10, (-9));
+	double hBottom = 0.87 * pow(10, (-6));
+	double hTop = 0.2 * pow(10, (-6));
+	double dr =  34 * pow(10, (-9));
+
+	//l=y, w=x
+
+	double lGate = 2 * pow(10, (-6));
+	double wGate = 0.5 * pow(10, (-6));
+
+	double lOpen = (8.0 + 8.0 + 1.0) * wGate;
+	double wOpen = wGate;
+
+	double x0 = -1.2 * (lOpen * 0.5);
 
 	//initialize electron
-	double electronPos[] = {0.0, 0.0, d};
+	double electronPos[] = {0.0, 0.0, dr};
 	ElectronClass epectron;
 	double q = 1.60217662 * pow(10, (-19)); //[C]
 	electron(&epectron, -1.0 * q, electronPos);
 
 	//initialize metal plates in system
-	int numObs = 2;
+	int numObs = 8;
 	MetalSheetClass objects[numObs];
+	HoleClass nullHoles[0];
+	double poser[numObs][3];
+	double geoer[numObs][3];
 
-	//top metal
-	MetalSheetClass topMetal;
-	int topMetalNumHoles = 2;
-	HoleClass topMetalHoles[topMetalNumHoles];
-	double topMetalH0Pos[] = {-0.5 * dtd, 0.0, 0.0}; //note that this last arg wont matter
-	hole(&(topMetalHoles[0]), topMetalH0Pos, 50 * pow(10, (-9)));
-	double topMetalH1Pos[] = {0.5 * dtd, 0.0, 0.0}; //note that this last arg wont matter
-	hole(&(topMetalHoles[1]), topMetalH1Pos, 50 * pow(10, (-9)));
-	double topMetalPos[] = {0.0, 0.0, 0.0};
-	double topMetalGeo[] = {lx, ly, lzTM};
-	metalSheet(&topMetal, 0, topMetalPos, topMetalGeo, topMetalNumHoles, topMetalHoles);
-	objects[0] = topMetal;
+	//defining frame
 
-	//dot potential metal
-	MetalSheetClass dotPot;
-	int dotPotNumHoles = 0;
-	HoleClass dotPotHoles[dotPotNumHoles];
-	double dotPotPos[] = {0.0, 0.0, -diff};
-	double dotPotGeo[] = {lx, ly, lzDP};
-	metalSheet(&dotPot, 0, dotPotPos, dotPotGeo, dotPotNumHoles, dotPotHoles);
-	objects[1] = dotPot;
+	//negative x metal
+	MetalSheetClass negX;
+	int negXNumHoles = 0;
+	HoleClass negXHoles[negXNumHoles];
+	double negXPos[] = {0.0, 0.0, -diff};
+	double negXGeo[] = {lx, ly, lzDP};
+	metalSheet(&negX, 0, negXPos, negXGeo, negXNumHoles, negXHoles);
+	objects[1] = negX;
 
-	/*
-	//bottom metal (adds marginal accuracy, can omit)
-	MetalSheetClass bottomMetal;
-	int bottomMetalNumHoles = 0;
-	HoleClass bottomMetalHoles[bottomMetalNumHoles];
+	//defining twiddles
 
-	double zBM = dSiN + 0.5 * (lzDP + lzBM);
-	double lxBM = 15000 * pow(10, (-9));
-	double bottomMetalPos[] = {0.0, 0.0, -zBM};
-	double bottomMetalGeo[] = {lxBM, ly, lzBM};
+	int j = 0;
+	for(; j < numObs; j++){
+		MetalSheetClass twiddle;
+		poser[j][0] = (-7.0 + (2.0 * j)) * wGate;
+		poser[j][1] = 0.0;
+		poser[j][2] = -hBottom * 0.5;
+		double gateGeo[] = {wGate, lGate, hBottom};
+		metalSheet(&(objects[j]), 0, poser[j], gateGeo, 0, nullHoles);
+		//print(objects[j]);
+	}
 
-	metalSheet(&bottomMetal, 0, bottomMetalPos, bottomMetalGeo, bottomMetalNumHoles, bottomMetalHoles);
-	objects[2] = bottomMetal;
-	//*/
+	//END ORIENTATION DEFINITION
 
 	//main code
 
 	//define bounding box
-	double lBound = 1 * pow(10, (-11));
+	double lBound = 1.0 * pow(10, (-11));
 	double hBound = 1.0;
 
 	//define the number of shots per data point
-	int reps = pow(10, 4);
+	int reps = pow(10, 3);
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
-	double x0 = (-0.5 * lx) * 1.25;
-	double xf = (0.5 * lx) * 1.25;
-	double perSide = 50; //defines the number of points per side
+	double xf = -1 * x0;
+	double perSide = 500; //defines the number of points per side
 
 	double num = (2 * perSide) + 1; //makes sweep even
 	double dx = (xf - x0) / (num - 1); //find the step size in the simulation
@@ -100,7 +95,7 @@ int main(void){
 	fprintf(printer, "Position (nm)\tVoltage (mV)\n");
 
 	//initialiize the electron for iteracting through the loop
-	int j = 0;
+	j = 0;
 	((&epectron)->pos)[0] = x0;
 
 	for(; j < num; j++){ //for the number of points in the simulation

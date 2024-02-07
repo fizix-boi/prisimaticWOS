@@ -1,0 +1,59 @@
+    //length scales for defined problem
+	double lzTM = 35 * pow(10, (-9));
+	double lzDP = 50 * pow(10, (-9));
+	double diffr = 15 * pow(10, (-9));
+	double diff = diffr + 0.5 * (lzTM + lzDP);
+	double lzBM = 100 * pow(10, (-9));
+	double dSiN = 1500 * pow(10, (-9));
+	double dr = (10 * pow(10, (-9)));
+	double d = dr + (0.5 * lzTM);
+	double lx = 5000 * pow(10, (-9));
+	double ly = 200 * pow(10, (-9));
+	double dtd = 3000 * pow(10, (-9));
+
+	//initialize electron
+	double electronPos[] = {0.0, 0.0, d};
+	ElectronClass epectron;
+	double q = 1.60217662 * pow(10, (-19)); //[C]
+	electron(&epectron, -1.0 * q, electronPos);
+
+	//initialize metal plates in system
+	int numObs = 2;
+	MetalSheetClass objects[numObs];
+
+	//top metal
+	MetalSheetClass topMetal;
+	int topMetalNumHoles = 2;
+	HoleClass topMetalHoles[topMetalNumHoles];
+	double topMetalH0Pos[] = {-0.5 * dtd, 0.0, 0.0}; //note that this last arg wont matter
+	hole(&(topMetalHoles[0]), topMetalH0Pos, 50 * pow(10, (-9)));
+	double topMetalH1Pos[] = {0.5 * dtd, 0.0, 0.0}; //note that this last arg wont matter
+	hole(&(topMetalHoles[1]), topMetalH1Pos, 50 * pow(10, (-9)));
+	double topMetalPos[] = {0.0, 0.0, 0.0};
+	double topMetalGeo[] = {lx, ly, lzTM};
+	metalSheet(&topMetal, 0, topMetalPos, topMetalGeo, topMetalNumHoles, topMetalHoles);
+	objects[0] = topMetal;
+
+	//dot potential metal
+	MetalSheetClass dotPot;
+	int dotPotNumHoles = 0;
+	HoleClass dotPotHoles[dotPotNumHoles];
+	double dotPotPos[] = {0.0, 0.0, -diff};
+	double dotPotGeo[] = {lx, ly, lzDP};
+	metalSheet(&dotPot, 0, dotPotPos, dotPotGeo, dotPotNumHoles, dotPotHoles);
+	objects[1] = dotPot;
+
+	/*
+	//bottom metal (adds marginal accuracy, can omit)
+	MetalSheetClass bottomMetal;
+	int bottomMetalNumHoles = 0;
+	HoleClass bottomMetalHoles[bottomMetalNumHoles];
+
+	double zBM = dSiN + 0.5 * (lzDP + lzBM);
+	double lxBM = 15000 * pow(10, (-9));
+	double bottomMetalPos[] = {0.0, 0.0, -zBM};
+	double bottomMetalGeo[] = {lxBM, ly, lzBM};
+
+	metalSheet(&bottomMetal, 0, bottomMetalPos, bottomMetalGeo, bottomMetalNumHoles, bottomMetalHoles);
+	objects[2] = bottomMetal;
+	//*/
