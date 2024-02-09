@@ -18,7 +18,7 @@ int main(void){
 	//length scales for defined problem
 	double hBottom = 0.87 * pow(10, (-6));
 	double hTop = 0.2 * pow(10, (-6));
-	double dr =  34 * pow(10, (-9));
+	double dr =  100 * pow(10, (-9));
 
 	//l=y, w=x
 
@@ -28,7 +28,10 @@ int main(void){
 	double lOpen = (8.0 + 8.0 + 1.0) * wGate;
 	double wOpen = wGate;
 
-	double x0 = -1.2 * (lOpen * 0.5);
+	double negXLength = 50 * pow(10, (-6));
+	double negYLength = 100 * pow(10, (-6));
+
+	double x0 = -3 * (lOpen * 0.5);
 
 	//initialize electron
 	double electronPos[] = {0.0, 0.0, dr};
@@ -37,7 +40,7 @@ int main(void){
 	electron(&epectron, -1.0 * q, electronPos);
 
 	//initialize metal plates in system
-	int numObs = 8;
+	int numObs = 12;
 	MetalSheetClass objects[numObs];
 	HoleClass nullHoles[0];
 	double poser[numObs][3];
@@ -49,19 +52,48 @@ int main(void){
 	MetalSheetClass negX;
 	int negXNumHoles = 0;
 	HoleClass negXHoles[negXNumHoles];
-	double negXPos[] = {0.0, 0.0, -diff};
-	double negXGeo[] = {lx, ly, lzDP};
+	double negXPos[] = {-0.5 * (negXLength + lOpen), 0.0, -hTop * 0.5};
+	double negXGeo[] = {negXLength, lGate, hTop};
 	metalSheet(&negX, 0, negXPos, negXGeo, negXNumHoles, negXHoles);
-	objects[1] = negX;
+	objects[8] = negX;
+
+	//positive x metal
+	MetalSheetClass posX;
+	int posXNumHoles = 0;
+	HoleClass posXHoles[posXNumHoles];
+	double posXPos[] = {0.5 * (negXLength + lOpen), 0.0, -hTop * 0.5};
+	double posXGeo[] = {negXLength, lGate, hTop};
+	metalSheet(&posX, 0, posXPos, posXGeo, posXNumHoles, posXHoles);
+	objects[9] = posX;
+
+	//negative y metal
+	MetalSheetClass negY;
+	int negYNumHoles = 0;
+	HoleClass negYHoles[negYNumHoles];
+	double negYPos[] = {0.0, -0.5 * (negYLength + wOpen), -hTop * 0.5};
+	double negYGeo[] = {2 * negXLength + lOpen, negYLength, hTop};
+	metalSheet(&negY, 0, negYPos, negYGeo, negYNumHoles, negYHoles);
+	objects[10] = negY;
+
+	//positive y metal
+	MetalSheetClass posY;
+	int posYNumHoles = 0;
+	HoleClass posYHoles[posYNumHoles];
+	double posYPos[] = {0.0, 0.5 * (negYLength + wOpen), -hTop * 0.5};
+	double posYGeo[] = {2 * negXLength + lOpen, negYLength, hTop};
+	metalSheet(&posY, 0, posYPos, posYGeo, posYNumHoles, posYHoles);
+	objects[11] = posY;
 
 	//defining twiddles
 
+	double numTwid = 8;
+
 	int j = 0;
-	for(; j < numObs; j++){
+	for(; j < numTwid; j++){
 		MetalSheetClass twiddle;
 		poser[j][0] = (-7.0 + (2.0 * j)) * wGate;
 		poser[j][1] = 0.0;
-		poser[j][2] = -hBottom * 0.5;
+		poser[j][2] = -hBottom * 0.5 - hTop;
 		double gateGeo[] = {wGate, lGate, hBottom};
 		metalSheet(&(objects[j]), 0, poser[j], gateGeo, 0, nullHoles);
 		//print(objects[j]);
@@ -76,7 +108,7 @@ int main(void){
 	double hBound = 1.0;
 
 	//define the number of shots per data point
-	int reps = pow(10, 3);
+	int reps = pow(10, 4);
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
