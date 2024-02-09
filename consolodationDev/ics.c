@@ -108,7 +108,7 @@ int main(void){
 	double hBound = 1.0;
 
 	//define the number of shots per data point
-	int reps = pow(10, 4);
+	int reps = pow(10, 4.5);
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
