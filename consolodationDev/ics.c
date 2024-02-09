@@ -18,7 +18,7 @@ int main(void){
 	//length scales for defined problem
 	double hBottom = 0.87 * pow(10, (-6));
 	double hTop = 0.2 * pow(10, (-6));
-	double dr =  100 * pow(10, (-9));
+	double dr =  34 * pow(10, (-9));
 
 	//l=y, w=x
 
@@ -29,7 +29,7 @@ int main(void){
 	double wOpen = wGate;
 
 	double negXLength = 50 * pow(10, (-6));
-	double negYLength = 100 * pow(10, (-6));
+	double negYLength = 200 * pow(10, (-6));
 
 	double x0 = -3 * (lOpen * 0.5);
 
