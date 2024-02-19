@@ -1,0 +1,2 @@
+Voltage on guard: 0
+Voltages on device: 0 on all 8

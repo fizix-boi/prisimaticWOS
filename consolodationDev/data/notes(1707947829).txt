@@ -1,0 +1,2 @@
+Voltages on guard: -10 mV
+Voltages on device: middle 6 are grounded, unsure about outer 2
