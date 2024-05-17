@@ -16,103 +16,54 @@ int main(void){
 	//START ORIENTATION DEFINITION
 
 	//length scales for defined problem
-	double hBottom = 0.87 * pow(10, (-6));
-	double spacer = 2.1 * pow(10, (-6));
-	double hTop = 0.2 * pow(10, (-6));
-	double waller = spacer + hTop;
+	double lGate = 100 * pow(10, (-6));
+	double wGate = 100 * pow(10, (-6));
+	double hGate = 25 * pow(10, (-9));
+	double tGate = 100 * pow(10, (-9)); //spacing
 
-	//l=y, w=x
-
-	double lGate = 2 * pow(10, (-6));
-	double wGate = 0.5 * pow(10, (-6));
-
-	double lOpen = (8.0 + 8.0 + 1.0) * wGate;
-	double wOpen = wGate;
-
-	/*
-	dr, as explored in IV.6, might need to be set to
-	dr = -1 * (waller - (lGate / 2))
-	in order to 'reach' the bottom of the channel
-
-	dr_v01 = 34 * pow(10, (-9));
-	dr_v02 = -0.1 * waller;
-	*/
-	double dr =  -1 * (waller - (lGate / 2));
-
-	double negXLength = 50 * pow(10, (-6));
-	double negYLength = 200 * pow(10, (-6));
-
-	double x0 = -0.975 * (lOpen * 0.5);
+	double dElec = (11 + 200) * pow(10, (-9)); //spacing
 
 	//initialize electron
-	double electronPos[] = {0.0, 0.0, dr};
+	double electronPos[] = {0.0, 0.0, dElec};
 	ElectronClass epectron;
 	double q = 1.60217662 * pow(10, (-19)); //[C]
 	electron(&epectron, -1.0 * q, electronPos);
 
 	//initialize metal plates in system
-	int numObs = 12;
+	int numObs = 3;
 	MetalSheetClass objects[numObs];
 	HoleClass nullHoles[0];
-	double poser[numObs][3];
-	double geoer[numObs][3];
 
-	//defining frame
+	//defining gates
 
-	double vguard = 0;
+	double V0 = 0.015;
 
-	//negative x metal
-	MetalSheetClass negX;
-	int negXNumHoles = 0;
-	HoleClass negXHoles[negXNumHoles];
-	double negXPos[] = {-0.5 * (negXLength + lOpen), 0.0, -hTop * 0.5};
-	double negXGeo[] = {negXLength, lGate, hTop};
-	metalSheet(&negX, vguard, negXPos, negXGeo, negXNumHoles, negXHoles);
-	objects[8] = negX;
+	//positive sloshing metal
+	MetalSheetClass posSlosh;
+	int posSloshNumHoles = 0;
+	HoleClass posSloshHoles[posSloshNumHoles];
+	double posSloshPos[] = {-lGate - tGate, 0.0, -0.5 * hGate};
+	double posSloshGeo[] = {lGate, wGate, hGate};
+	metalSheet(&posSlosh, V0, posSloshPos, posSloshGeo, posSloshNumHoles, posSloshHoles);
+	objects[0] = posSlosh;
 
-	//positive x metal
-	MetalSheetClass posX;
-	int posXNumHoles = 0;
-	HoleClass posXHoles[posXNumHoles];
-	double posXPos[] = {0.5 * (negXLength + lOpen), 0.0, -hTop * 0.5};
-	double posXGeo[] = {negXLength, lGate, hTop};
-	metalSheet(&posX, vguard, posXPos, posXGeo, posXNumHoles, posXHoles);
-	objects[9] = posX;
+	//ground sensing metal
+	MetalSheetClass sense;
+	int senseNumHoles = 0;
+	HoleClass senseHoles[senseNumHoles];
+	double sensePos[] = {0.0, 0.0, -0.5 * hGate};
+	double senseGeo[] = {lGate, wGate, hGate};
+	metalSheet(&sense, 0, sensePos, senseGeo, senseNumHoles, senseHoles);
+	objects[1] = sense;
 
-	//negative y metal
-	MetalSheetClass negY;
-	int negYNumHoles = 0;
-	HoleClass negYHoles[negYNumHoles];
-	double negYPos[] = {0.0, -0.5 * (negYLength + wOpen), -hTop * 0.5};
-	double negYGeo[] = {2 * negXLength + lOpen, negYLength, hTop};
-	metalSheet(&negY, vguard, negYPos, negYGeo, negYNumHoles, negYHoles);
-	objects[10] = negY;
-
-	//positive y metal
-	MetalSheetClass posY;
-	int posYNumHoles = 0;
-	HoleClass posYHoles[posYNumHoles];
-	double posYPos[] = {0.0, 0.5 * (negYLength + wOpen), -hTop * 0.5};
-	double posYGeo[] = {2 * negXLength + lOpen, negYLength, hTop};
-	metalSheet(&posY, vguard, posYPos, posYGeo, posYNumHoles, posYHoles);
-	objects[11] = posY;
-
-	//defining twiddles
-
-	double numTwid = 8;
-	double vTwidNull[] = {0, 0, 0, 0, 0, 0, 0, 0};
-	double vTwid[] = {vguard, 0, 0, -vguard / 2, -vguard / 2, 0, 0, vguard};
-
-	int j = 0;
-	for(; j < numTwid; j++){
-		MetalSheetClass twiddle;
-		poser[j][0] = (-7.0 + (2.0 * j)) * wGate;
-		poser[j][1] = 0.0;
-		poser[j][2] = -hBottom * 0.5 - hTop - spacer;
-		double gateGeo[] = {wGate, lGate, hBottom};
-		metalSheet(&(objects[j]), vTwidNull[j], poser[j], gateGeo, 0, nullHoles);
-		//print(objects[j]);
-	}
+	//negative sloshing metal
+	MetalSheetClass negSlosh;
+	int negSloshNumHoles = 0;
+	HoleClass negSloshHoles[negSloshNumHoles];
+	double negSloshPos[] = {lGate + tGate, 0.0, -0.5 * hGate};
+	double negSloshGeo[] = {lGate, wGate, hGate};
+	metalSheet(&negSlosh, -1 * V0, negSloshPos, negSloshGeo, negSloshNumHoles, negSloshHoles);
+	objects[2] = negSlosh;
 
 	//END ORIENTATION DEFINITION
 
@@ -127,28 +78,33 @@ int main(void){
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
-	double xf = -1 * x0;
-	double perSide = 250; //defines the number of points per side
+	double x0 = -51 * pow(10, (-6));
+	double xf = -49 * pow(10, (-6));
+	double perSide = 100; //defines the number of points per side
 
 	double num = (2 * perSide) + 1; //makes sweep even
 	double dx = (xf - x0) / (num - 1); //find the step size in the simulation
 
-	int div = 1; //prints this many X's to show progress of the simulation
+	int div = 10; //prints this many X's to show progress of the simulation
 
 	//initialize the file for data collection
 	FILE *printer;
 	printer = fopen("ICSData.txt", "w");
-	fprintf(printer, "Height (nm):\t%f\n", dr * 1000000000.0);
+	fprintf(printer, "Height (nm):\t%f\n", dElec * 1000000000.0);
 	fprintf(printer, "Position (nm)\tVoltage (mV)\n");
 
 	//initialiize the electron for iteracting through the loop
+	int j;
 	j = 0;
 	((&epectron)->pos)[0] = x0;
+
+	double dt_avg = 0;
 
 	for(; j < num; j++){ //for the number of points in the simulation
 		double volt = 0; //initializes the res
 		int i = 0;
 
+		double timer0 = (double) clock();
 		for(; i < reps; i++){ //for the number of monte carlo shots requested
 			//calculate the potential shot and add it the the result for later
 			volt += potentialShot(epectron, objects, numObs, lBound, hBound);
@@ -156,7 +112,13 @@ int main(void){
 				printf("X"); //print a progress X
 			}
 		}
-		printf("> #%3d/%d done\n", j + 1, (int) num);
+		double dt = (((double) clock()) - timer0) / CLOCKS_PER_SEC;
+
+		dt_avg = ((dt_avg * j) + dt) / (j + 1);
+		int remainer = num - j - 1;
+		double time_remainer = dt_avg * remainer / 60;
+
+		printf("> #%3d/%d done - est. time reamaining: %f min\n", j + 1, (int) num, time_remainer);
 
 		volt *= normer; //normalize to the number of shots calculated
 
