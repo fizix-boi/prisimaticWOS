@@ -20,7 +20,7 @@ int main(void){
 	double wGate = 100 * pow(10, (-6));
 	double hGate = 100 * pow(10, (-6));
 
-	double dElec = (800) * pow(10, (-9)) + (hGate / 2); //spacing
+	double dElec = (10) * pow(10, (-9)) + (hGate / 2);
 
 	//initialize electron
 	double electronPos[] = {0.0, 0.0, dElec};
@@ -58,9 +58,9 @@ int main(void){
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
-	double x0 = 0;//100 * pow(10, (-6));
-	double xf = hGate;//100 * pow(10, (-6));
-	double perSide = 100; //defines the number of points per side
+	double x0 = 0.95 * (hGate / 2);//100 * pow(10, (-6));
+	double xf = 10 * (hGate / 2);//100 * pow(10, (-6));
+	double perSide = 1500; //defines the number of points per side
 
 	double num = (2 * perSide) + 1; //makes sweep even
 	double dx = (xf - x0) / (num - 1); //find the step size in the simulation
