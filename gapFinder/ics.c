@@ -61,18 +61,18 @@ int main(void){
 	//main code
 	double lBound = 1 * pow(10, (-9));
 	double hBound = 1.0;
-	int reps = pow(10, 5);
+	int reps = pow(10, 8);
 	int div = 20;
 	double normer = 1 / ((double) reps);
 	
 	double z0 = (100 * pow(10, (-9))) + (0.5 * lz);
 	double zf = (600 * pow(10, (-9))) + (0.5 * lz);
-	double num = 20 + 1;
+	double num = 10 + 1;
 	double dz = (zf - z0) / (num - 1);
 	
 	double g0 = (100 * pow(10, (-9)));
 	double gf = (20 * pow(10, (-9)));
-	double numg = 8 + 1;
+	double numg = 4 + 1;
 	double dg = (gf - g0) / (numg - 1);
 	
 	FILE *printer;
@@ -108,7 +108,7 @@ int main(void){
 					printf("X");
 				}
 			}
-			printf("> #%3d/%d done\n", j + 1, (int) num);
+			printf("> #%3d/%d done plate\n", j + 1, (int) num);
 			
 			base *= normer;
 			
@@ -122,7 +122,7 @@ int main(void){
 					printf("X");
 				}
 			}
-			printf("> #%3d/%d done\n", j + 1, (int) num);
+			printf("> #%3d/%d done gap\n", j + 1, (int) num);
 			
 			gapper *= normer;
 			
