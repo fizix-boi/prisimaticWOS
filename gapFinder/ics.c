@@ -70,8 +70,8 @@ int main(void){
 	double num = 10 + 1;
 	double dz = (zf - z0) / (num - 1);
 	
-	double g0 = (100 * pow(10, (-9)));
-	double gf = (20 * pow(10, (-9)));
+	double g0 = (90 * pow(10, (-9)));
+	double gf = (10 * pow(10, (-9)));
 	double numg = 4 + 1;
 	double dg = (gf - g0) / (numg - 1);
 	
