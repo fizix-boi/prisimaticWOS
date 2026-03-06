@@ -61,19 +61,19 @@ int main(void){
 	//main code
 	double lBound = 1 * pow(10, (-9));
 	double hBound = 1.0;
-	int reps = pow(10, 8);
+	int reps = pow(10, 4);
 	int div = 20;
 	double normer = 1 / ((double) reps);
 	
-	double z0 = (100 * pow(10, (-9))) + (0.5 * lz);
-	double zf = (600 * pow(10, (-9))) + (0.5 * lz);
-	double num = 10 + 1;
+	double z0 = (1 * pow(10, (-9))) + (0.5 * lz);
+	double zf = (10 * pow(10, (-9))) + (0.5 * lz);
+	double num = 155 + 1;
 	double dz = (zf - z0) / (num - 1);
 	
-	double g0 = (90 * pow(10, (-9)));
-	double gf = (10 * pow(10, (-9)));
-	double numg = 4 + 1;
-	double dg = (gf - g0) / (numg - 1);
+	double g0 = (20 * pow(10, (-9)));
+	double gf = (20 * pow(10, (-9)));
+	double numg = 0 + 1;
+	double dg = 0.0;//(gf - g0) / (numg - 1);
 	
 	FILE *printer;
 	printer = fopen("ICSData.txt", "w");
@@ -104,11 +104,11 @@ int main(void){
 			
 			for(; i < reps; i++){
 				base += potentialShot(epectron, objects, numObs, lBound, hBound);
-				if(((i + 1) % (reps / div)) == 0){
-					printf("X");
-				}
+				//if(((i + 1) % (reps / div)) == 0){
+				//	printf("X");
+				//}
 			}
-			printf("> #%3d/%d done plate\n", j + 1, (int) num);
+			//printf("> #%3d/%d done plate\n", j + 1, (int) num);
 			
 			base *= normer;
 			
@@ -118,9 +118,9 @@ int main(void){
 			
 			for(; i < reps; i++){
 				gapper += potentialShot(epectron, objects, numObs, lBound, hBound);
-				if(((i + 1) % (reps / div)) == 0){
-					printf("X");
-				}
+				//if(((i + 1) % (reps / div)) == 0){
+				//	printf("X");
+				//}
 			}
 			printf("> #%3d/%d done gap\n", j + 1, (int) num);
 			
