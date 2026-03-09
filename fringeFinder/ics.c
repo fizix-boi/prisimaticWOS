@@ -16,20 +16,21 @@ int main(void){
 	//START ORIENTATION DEFINITION
 
 	//length scales for defined problem
-	double lGate = 100 * pow(10, (-6));
-	double wGate = 100 * pow(10, (-6));
-	double hGate = 100 * pow(10, (-6));
-
-	double dElec = (10) * pow(10, (-9)) + (hGate / 2);
+	double lz = 50 * pow(10, (-9));
+	double lx = 300000 * pow(10, (-9));
+	double ly = 500000 * pow(10, (-9));
+	
+	double d = (10 * pow(10, (-9))) + (0.5 * lz);
+	double g = 100 * pow(10, (-9));
 
 	//initialize electron
-	double electronPos[] = {0.0, 0.0, dElec};
+	double electronPos[] = {0.0, 0.0, d};
 	ElectronClass epectron;
 	double q = 1.60217662 * pow(10, (-19)); //[C]
 	electron(&epectron, -1.0 * q, electronPos);
 
 	//initialize metal plates in system
-	int numObs = 1;
+	int numObs = 2;
 	MetalSheetClass objects[numObs];
 	HoleClass nullHoles[0];
 
@@ -38,12 +39,22 @@ int main(void){
 	double V0 = 0.0;
 
 	//positive sloshing metal
-	MetalSheetClass metaa;
-	HoleClass metaaHoles[0];
-	double metaaPos[] = {0.0, 0.0, 0.0};
-	double metaaGeo[] = {lGate, wGate, hGate};
-	metalSheet(&metaa, V0, metaaPos, metaaGeo, 0, metaaHoles);
-	objects[0] = metaa;
+	MetalSheetClass posSlosh;
+	int posSloshNumHoles = 0;
+	HoleClass posSloshHoles[posSloshNumHoles];
+	double posSloshPos[] = {-0.5 * (lx + g), 0.0, 0.0};
+	double posSloshGeo[] = {lx, ly, lz};
+	metalSheet(&posSlosh, V0, posSloshPos, posSloshGeo, posSloshNumHoles, posSloshHoles);
+	objects[0] = posSlosh;
+
+	//negative sloshing metal
+	MetalSheetClass negSlosh;
+	int negSloshNumHoles = 0;
+	HoleClass negSloshHoles[negSloshNumHoles];
+	double negSloshPos[] = {0.5 * (lx + g), 0.0, 0.0};;
+	double negSloshGeo[] = {lx, ly, lz};
+	metalSheet(&negSlosh, V0, negSloshPos, negSloshGeo, negSloshNumHoles, negSloshHoles);
+	objects[1] = negSlosh;
 
 	//END ORIENTATION DEFINITION
 
@@ -54,13 +65,13 @@ int main(void){
 	double hBound = 1.0;
 
 	//define the number of shots per data point
-	int reps = pow(10, 6);
+	int reps = pow(10, 5);
 	double normer = 1 / ((double) reps);
 
 	//give the parameters of the position sweep
-	double x0 = 0.95 * (hGate / 2);//100 * pow(10, (-6));
-	double xf = 10 * (hGate / 2);//100 * pow(10, (-6));
-	double perSide = 1500; //defines the number of points per side
+	double x0 = -1.5 * g;//100 * pow(10, (-6));
+	double xf = 1.5 * g;//100 * pow(10, (-6));
+	double perSide = 120; //defines the number of points per side
 
 	double num = (2 * perSide) + 1; //makes sweep even
 	double dx = (xf - x0) / (num - 1); //find the step size in the simulation
@@ -70,7 +81,7 @@ int main(void){
 	//initialize the file for data collection
 	FILE *printer;
 	printer = fopen("ICSData.txt", "w");
-	fprintf(printer, "Height (nm):\t%f\n", (dElec - (hGate / 2)) * 1000000000.0);
+	fprintf(printer, "Height (nm):\t%f\n", (d - (lz / 2)) * 1000000000.0);
 	fprintf(printer, "Position (nm)\tVoltage (mV)\n");
 
 	//initialiize the electron for iteracting through the loop
